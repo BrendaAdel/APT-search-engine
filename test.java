@@ -12,9 +12,13 @@ package apt_project;
 // Bassem edited this
 =======
  * Bassem edited this - again -- again again
- * *****   jhjkhk kjhjk k 
+ * *****   jhjkhk kjhjk k
 */
 public class test {
 //dummy class
+    public static void main (String [] args){
+        Spider toto = new Spider("http://annaxiin.tumblr.com/");
+        if (toto.success) toto.hashPage();
+    }
     
 }
