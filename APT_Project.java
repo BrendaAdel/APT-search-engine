@@ -16,8 +16,8 @@ public class APT_Project {
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        Thread crawler = new Thread(new Crawler());
-        crawler.start();
+        Thread crawlerController = new Thread(new CrawlerController());
+        crawlerController.start();
         Thread indexer = new Thread(new Indexer());
         indexer.start();
         
