@@ -14,6 +14,7 @@ import java.util.Set;
  */
 public class PageVisitedByCrawler {
     private Set<String> pagesVisited = new HashSet<String>();
+	private int dummy ;//this is to test github conflicts only 
     
     
     public synchronized boolean isNotVisited (String nextUrl)
