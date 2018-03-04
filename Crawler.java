@@ -42,10 +42,8 @@ private PageVisitedByCrawler pageVisited;
              String url=nextUrl();
              createSpider(url);
              stopCreatriaNumber--;
-             
+             System.out.println("***total unvisited links*** " + (urlNotVisited.size()));
         }
-       
-        
     }
     
     private String nextUrl()
@@ -68,10 +66,10 @@ private PageVisitedByCrawler pageVisited;
     {
         Spider spider= new Spider(url);
         List<String> temp=new ArrayList<>();
+
         if (spider.success)
             temp = spider.getLinks();
-        System.out.println("links");
-        System.out.print(temp);
+
         for(int i=0; i<temp.size();i++)
         {
             urlNotVisited.add(temp.get(i));
