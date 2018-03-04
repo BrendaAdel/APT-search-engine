@@ -9,6 +9,8 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -96,8 +98,21 @@ public class Spider{
 
             //TODO find better way to recognize working link
             for (Element link : this.links) {
-                if (link.toString().contains("http:/") || link.toString().contains("https:/"))
-                    httpLinks.add(link.toString());
+                if (link.toString().contains("http:/") || link.toString().contains("https:/")){
+                    ArrayList LINKS = new ArrayList();
+                    String regex = "\\(?\\b(http://|www[.])[-A-Za-z0-9+&amp;@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&amp;@#/%=~_()|]";
+                    Pattern p = Pattern.compile(regex);
+                    Matcher m = p.matcher(link.toString());
+                    while(m.find()) {
+                        String urlStr = m.group();
+                        if (urlStr.startsWith("(") &amp;&amp; urlStr.endsWith(")"))
+                        {
+                            urlStr = urlStr.substring(1, urlStr.length() - 1);
+                        }
+                        LINKS.add(urlStr);
+                    }
+                    httpLinks.add(LINKS.toString());
+                }
             }
 
             System.out.println("Found (" + this.httpLinks.size() + ") links");
@@ -118,9 +133,8 @@ public class Spider{
         }
     }
 
-    public List<String> getLinks( List<String> li)
+    public List<String> getLinks( )
     {
-        li = httpLinks;
         return httpLinks;
     }
 

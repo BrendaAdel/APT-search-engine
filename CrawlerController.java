@@ -22,11 +22,13 @@ private int numOfThreads;
         System.out.println("hello from controllerCrawler Thread");
         intialization();
         createThreads();
+
+        System.out.print(pageVisited);
         //
-        while(true)
+        /*while(true)
         {
             reCrawel();
-        }
+        }*/
     }
     private void intialization ()
     {

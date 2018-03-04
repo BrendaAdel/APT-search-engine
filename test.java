@@ -27,8 +27,8 @@ public class test {
 
         URI uri = new URI("https://stackoverflow.com/questions/10159186/how-to-get-parent-url-in-java");
         URI parent = uri.getPath().endsWith("/") ? uri.resolve("..") : uri.resolve(".");
-        parent = parent.getPath().endsWith("/") ? parent.resolve("..") : parent.resolve(".");
         System.out.println(parent);
+
         /*
         try(BufferedReader in = new BufferedReader(
                 new InputStreamReader(new URL("https://google.com/robots.txt").openStream()))) {
