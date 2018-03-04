@@ -8,7 +8,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -35,6 +35,7 @@ public class Spider{
      * list of links found on page
      */
     private Elements links;
+    private List<String> httpLinks = new ArrayList<>();
 
     /**
      * checked by the class who owns the spider as a state flag
@@ -92,8 +93,15 @@ public class Spider{
     {
         if (this.htmlDocument != null){
             this.links = this.htmlDocument.select("a[href]");
-            System.out.println("Found (" + this.links.size() + ") links");
-            this.linksCount = this.links.size();
+
+            //TODO find better way to recognize working link
+            for (Element link : this.links) {
+                if (link.toString().contains("http:/") || link.toString().contains("https:/"))
+                    httpLinks.add(link.toString());
+            }
+
+            System.out.println("Found (" + this.httpLinks.size() + ") links");
+            this.linksCount = this.httpLinks.size();
         }
         else {
             this.linksCount = 0;
@@ -104,27 +112,16 @@ public class Spider{
     public void printLinks()
     {
         if (this.success) {
-            for (Element link : this.links) {
-                System.out.println(link.toString());
+            for (String link : this.httpLinks) {
+                System.out.println(link);
             }
         }
     }
 
-    //TODO
     public List<String> getLinks( List<String> li)
     {
-
-        if (this.success){
-            for (Element link : this.links) {
-                //this.links.add(link.absUrl("href"));
-                //TODO check ezay hraga3 el links di le brenda
-            }
-            return li;
-        }
-        else {
-            System.out.println("this spider wasn't successful crawling it's page, returning an empty links list");
-            return li;
-        }
+        li = httpLinks;
+        return httpLinks;
     }
 
     //TODO
