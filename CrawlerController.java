@@ -34,7 +34,7 @@ private int firstTime;
         System.out.println("hello from controllerCrawler Thread");
         intialization();
         //if not craweled , create thread and go on the normal flow 
-        if(!crawled)
+        if(firstTime<=0)
         try 
         {
             createThreads();
@@ -104,7 +104,7 @@ private int firstTime;
                    
                     if(line!=null)
                     {
-                        crawled=true;
+                        
                         firstTime=1;
                     }
                         
@@ -112,7 +112,6 @@ private int firstTime;
                     {
                          firstTime=0;
                        
-                        crawled=false;
                     }
 
                     bufferedReader.close();

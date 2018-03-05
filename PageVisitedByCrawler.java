@@ -20,10 +20,10 @@ public class PageVisitedByCrawler {
 
     PageVisitedByCrawler(Model_DB db) {
         //TO GET FILLED FROM DATABASE 3SHAN IF INTERRUPTED 
+        System.out.print("entered constructor");
+       db.getVisitedUrl(pagesVisited);
+        System.out.print("hello");
         
-         pagesVisited= db.getVisitedUrl();
-        
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     public synchronized boolean isNotVisited (String nextUrl)

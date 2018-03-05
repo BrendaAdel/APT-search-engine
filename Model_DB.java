@@ -5,7 +5,9 @@
  */
 package apt_project;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -32,7 +34,17 @@ public class Model_DB {
     
     public synchronized void incrementCounterOfStoppingCreatria()
     {
-        // to do fi counter fi database hanzwedo 
+        // to do fi counter fi database hanzwedo lma nkhalas haga 
+    }
+
+    int getStoppingCreatria() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    
+
+    public void getVisitedUrl(Set<String> pagesVisited) {
+        
     }
     
 }
