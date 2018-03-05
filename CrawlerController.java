@@ -55,6 +55,7 @@ private int firstTime;
     private void intialization ()
     {
         String line ="";
+        db=new Model_DB();
         myList = new ArrayList<>();
         pageVisited= new PageVisitedByCrawler(db);
         try
