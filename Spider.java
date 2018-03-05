@@ -190,4 +190,8 @@ public class Spider{
         System.out.print(this.htmlDocument.toString());
         return "S";
     }
+
+    Bundle getData() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

@@ -16,9 +16,14 @@ public class PageVisitedByCrawler {
     private Set<String> pagesVisited = new HashSet<String>();
 	private int dummy ;//this is to test github conflicts only 
     
-    PageVisitedByCrawler()
-    {
+    
+
+    PageVisitedByCrawler(Model_DB db) {
         //TO GET FILLED FROM DATABASE 3SHAN IF INTERRUPTED 
+        
+         pagesVisited= db.getVisitedUrl();
+        
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
     public synchronized boolean isNotVisited (String nextUrl)

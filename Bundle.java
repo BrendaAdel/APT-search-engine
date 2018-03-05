@@ -21,6 +21,7 @@ public class Bundle {
     private String title;
     private String header;
     private String body;
+    private boolean indexed;
     
     Bundle()
     {
@@ -31,6 +32,7 @@ public class Bundle {
         title="";
         header="";
         body="";
+        indexed=false;
     }
     public void setChild(List<String> ch)
     {
@@ -40,9 +42,17 @@ public class Bundle {
         }
         
     }
-    public String getChild(int i)
+    public boolean getIndexed()
     {
-        return childs.get(i);
+        return indexed;
+    }
+    public void setIndexed(boolean indexed)
+    {
+        this.indexed=indexed;
+    }
+    public  List<String> getChild()
+    {
+        return childs;
     }
     public int getChildCount()
     {
