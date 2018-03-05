@@ -44,8 +44,8 @@ private String seed;
     }
     Crawler(PageVisitedByCrawler pageVisited,int stopCreatria,Model_DB db,int crawlingType)
     {
-        stopCreatriaNumber=stopCreatria;
-        this.pageVisited=pageVisited;
+       stopCreatriaNumber=stopCreatria;
+       this.pageVisited=pageVisited;
        this.db=db;
        if(crawlingType==-1)
        {

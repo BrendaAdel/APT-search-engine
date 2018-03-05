@@ -38,7 +38,8 @@ private int firstTime;
         try 
         {
             createThreads();
-        } catch (InterruptedException ex) 
+        }
+        catch (InterruptedException ex) 
         {
             System.out.println("can't create threads");
         }
@@ -100,11 +101,16 @@ private int firstTime;
                     line = bufferedReader.readLine();
                     numOfThreads=Integer.parseInt(line);
                     line= bufferedReader.readLine();
-                    firstTime=0;
-                    if(line=="crawled")
+                   
+                    if(line!=null)
+                    {
                         crawled=true;
+                        firstTime=1;
+                    }
+                        
                     else
                     {
+                         firstTime=0;
                        
                         crawled=false;
                     }
@@ -132,7 +138,7 @@ private int firstTime;
     private void createThreads() throws InterruptedException
     {
         threadArray = new Crawler[numOfThreads]; //dynamic array of crawler
-         Thread[] temp= new Thread [numOfThreads] ;
+        Thread[] temp= new Thread [numOfThreads] ;
         int target=db.getStoppingCreatria();
         int stopCreatria=(5000-target)/numOfThreads;
         int stopCreatria2=((5000-target)/numOfThreads)+((5000-target)%numOfThreads);
@@ -170,6 +176,7 @@ private int firstTime;
           
           
         }
+     
         for(int i=0 ; i<numOfThreads;i++)
         {
             temp[i].join();
