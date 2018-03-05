@@ -105,7 +105,7 @@ public class Spider{
                     Matcher m = p.matcher(link.toString());
                     while(m.find()) {
                         String urlStr = m.group();
-                        if (urlStr.startsWith("(") &amp;&amp; urlStr.endsWith(")"))
+                        if (urlStr.startsWith("(") && urlStr.endsWith(")"))
                         {
                             urlStr = urlStr.substring(1, urlStr.length() - 1);
                         }

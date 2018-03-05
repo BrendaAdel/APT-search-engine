@@ -21,6 +21,7 @@ private List<String> urlNotVisited;
 //private Set<String> pagesVisited = new HashSet<String>();
 private int stopCreatriaNumber;
 private PageVisitedByCrawler pageVisited;
+private boolean recrawled=false;
 
 
     Crawler(String name,PageVisitedByCrawler pageVisited,int stopCreatria)
@@ -30,12 +31,23 @@ private PageVisitedByCrawler pageVisited;
        urlNotVisited.add(name);
        this.pageVisited=pageVisited;
     }
+    Crawler(List<String> urlNotVisited,PageVisitedByCrawler pageVisited,int stopCreatria)
+    {
+        //for re crawling i will intially give him a list and not a single seed
+        this.urlNotVisited = new LinkedList<String>();
+        this.urlNotVisited=urlNotVisited;
+        stopCreatriaNumber=stopCreatria;
+        this.pageVisited=pageVisited;
+        recrawled=true;
+        
+    }
 
     
 
     @Override
     public void run() {
         System.out.println("hello from Crawler Thread");
+        
         while(stopCreatriaNumber>0)
         {
             //it's supposed to be while we didn't reach the stopping creatria
@@ -57,7 +69,7 @@ private PageVisitedByCrawler pageVisited;
              nextUrl = urlNotVisited.remove(0);
              if(pageVisited.isNotVisited(nextUrl))
              {
-                 //if it's not already visited
+                 //if it's not already visited     
                 return nextUrl;
              }
         }
@@ -67,15 +79,20 @@ private PageVisitedByCrawler pageVisited;
     private void createSpider(String url)
     {
         Spider spider= new Spider(url);
-        List<String> temp=new ArrayList<>();
+        /*List<String> temp=new ArrayList<>();
         if (spider.success)
             temp = spider.getLinks();
-        System.out.println("links");
-        System.out.print(temp);
-        for(int i=0; i<temp.size();i++)
+        */
+        Bundle data =spider.getData();
+        for(int i=0; i<data.getChildCount();i++)
         {
-            urlNotVisited.add(temp.get(i));
+            urlNotVisited.add(data.getChild(i));
         }
+        pageVisited.makeVisited(url);
+        
+        //HENA MFROUD NSAVE F DATA BASE KMAAN 
+        // AND NOTIFY INDEXER THAT ONE ROW IS READY 
+        
     }
           
     

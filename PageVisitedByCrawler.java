@@ -16,13 +16,23 @@ public class PageVisitedByCrawler {
     private Set<String> pagesVisited = new HashSet<String>();
 	private int dummy ;//this is to test github conflicts only 
     
+    PageVisitedByCrawler()
+    {
+        //TO GET FILLED FROM DATABASE 3SHAN IF INTERRUPTED 
+    }
     
     public synchronized boolean isNotVisited (String nextUrl)
     {
         if(pagesVisited.contains(nextUrl))
            return false;
-        pagesVisited.add(nextUrl);
+        //pagesVisited.add(nextUrl);
         return true;
+    }
+    public synchronized void makeVisited (String nextUrl)
+    {
+        
+        pagesVisited.add(nextUrl);
+        
     }
     
 }
