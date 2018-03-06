@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -64,6 +65,7 @@ public class Spider{
         htmlDocument = null;
         success = false;
         linksCount = 0;
+        data = new Bundle();
     }
 
 
@@ -230,13 +232,12 @@ public class Spider{
         boolean allCrawlers = false;
         List<String> thisURLdisallowedSLashes = new ArrayList<>();
 
-        try(BufferedReader in = new BufferedReader(
-                new InputStreamReader(new URL(parentURL + "robots.txt").openStream()))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(parentURL + "robots.txt").openStream()))) {
             String line = null;
-            while((line = in.readLine()) != null) {
+            while ((line = in.readLine()) != null) {
                 //extract the disallowed slashes of the ROBOTS file
-                if (allCrawlers){
-                    if (line.contains("Disallow:")){
+                if (allCrawlers) {
+                    if (line.contains("Disallow:")) {
                         thisURLdisallowedSLashes.add(line.substring("Disallow:".length(), line.length()));
                     }
                 }
@@ -245,6 +246,9 @@ public class Spider{
                 } else if (line.contains("User-agent"))
                     allCrawlers = false; //the next time it sees User-agent redirect the behaviour
             }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
         } catch (IOException e) {
             e.printStackTrace();
 

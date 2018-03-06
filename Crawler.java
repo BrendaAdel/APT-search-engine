@@ -129,7 +129,7 @@ private String seed;
 			notifyIndexer();
 			//HENA MFROUD NSAVE F DATA BASE KMAAN 
 			// AND NOTIFY INDEXER THAT ONE ROW IS READY
-		} esle {
+		} else {
 			//TODO
             //lw el spider failed le ai sbab network aw ai 7aaga . n3ml a
 		}

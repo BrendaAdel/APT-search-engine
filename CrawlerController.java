@@ -88,7 +88,8 @@ private int firstTime;
                         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                         bufferedWriter.write("firsttime");
                         bufferedWriter.newLine();
-                        bufferedWriter.write(numOfThreads);
+                        String dumm = ""; dumm = dumm + numOfThreads;
+                        bufferedWriter.write(dumm);
                         bufferedWriter.close();
                     }
                     catch(IOException ex) {
