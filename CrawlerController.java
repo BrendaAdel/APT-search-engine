@@ -20,6 +20,7 @@ import java.util.logging.Logger;
  * @author Brenda
  */
 public class CrawlerController implements Runnable{
+
 private List<String> myList;
 private Crawler[] threadArray ;
 private PageVisitedByCrawler pageVisited ;
@@ -29,6 +30,7 @@ private  final int MAX_PAGES = 5000;
 private boolean crawled=false;
 private int firstTime;
 //private boolean firstTime;// to indicate if he is returning from an interrupt or it's the first time 
+
     @Override
     public void run() {
         System.out.println("hello from controllerCrawler Thread");
@@ -86,9 +88,11 @@ private int firstTime;
                         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                         bufferedWriter.write("firsttime");
                         bufferedWriter.newLine();
+
                         String dummy="";
                         dummy=dummy+numOfThreads;
                         bufferedWriter.write(dummy);
+
                         bufferedWriter.close();
                     }
                     catch(IOException ex) {

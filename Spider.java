@@ -10,6 +10,7 @@ import org.jsoup.select.Elements;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -26,8 +27,8 @@ import java.util.regex.Pattern;
 public class Spider{
 
     private final String USER_AGENT =
-            "Chrome/13.0.782.112";
-
+            //"Chrome/13.0.782.112";
+            "Mozilla/5.0 (Windows; U; Windows NT 5.1; de; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 (FM Scene 4.6.1) ";
     /**
      * the url that this spider object is supposed to visit and handle it's html files
      */
@@ -44,6 +45,12 @@ public class Spider{
     private Elements links;
     private List<String> httpLinks = new ArrayList<>();
 
+
+    /**
+     * the bundle that will be filled and returned
+     */
+    private Bundle data;
+
     /**
      * checked by the class who owns the spider as a state flag
      */
@@ -58,6 +65,7 @@ public class Spider{
         htmlDocument = null;
         success = false;
         linksCount = 0;
+        data = new Bundle();
     }
 
 
@@ -69,11 +77,12 @@ public class Spider{
         crawl();
     }
 
-    private void crawl ()
-    {
+    private void crawl () {
         final Document document = downloadDocument();
         if (document != null) {
             findLinks();
+            fillBundleData();
+            checkRobot(); //removes the disallowed links from the bundle using robots.txt
             System.out.println("Received web page at " + url + " , found " + linksCount + " links.");
             this.success = true;
         } else {
@@ -100,8 +109,6 @@ public class Spider{
         return this.htmlDocument;
     }
 
-    //TODO : needs cleaning the links from the internal #links in page, empty links and disallowed links
-    //TODO remember , el links mmkn tb2a links ktir le nafs el page asln (# 7agat) bs el text hyb2a mo5talef , bta3 el link nafso
     private void findLinks()
     {
         if (this.htmlDocument != null){
@@ -142,17 +149,21 @@ public class Spider{
         }
     }
 
-    public List<String> getLinks( )
+    /*
+    cleans the links of the disallowed links, and returns the robots.txt as string
+    */
+    private String checkRobot()
     {
-        return httpLinks;
-    }
+        String parentURL = null;
+        StringBuilder ROBOTS = new StringBuilder();
+        try {
+            parentURL = getParentURL(this.url);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
 
-    //TODO :
-    // check if the current (child) link is allowed or not
-    // save the disallowed tags to check them before returning the links
-    public void checkRobot() throws URISyntaxException {
-        //get the parent link
-        String parentURL = getParentURL(this.url);
+        boolean allCrawlers = false;
+        List<String> thisURLdisallowedSLashes = new ArrayList<>();
 
         //get the Robots.txt file (TODO check if it even exists)
         // https://stackoverflow.com/questions/25731346/reading-robot-txt-with-jsoup-line-by-line
@@ -160,18 +171,132 @@ public class Spider{
             new InputStreamReader(new URL(parentURL + "robots.txt").openStream()))) {
             String line = null;
             while((line = in.readLine()) != null) {
-                System.out.println(line);
+                //System.out.println(line);
+                ROBOTS.append(line);
+
+                //extract the disallowed slashes of the ROBOTS file
+
+                if (allCrawlers){
+                    if (line.contains("Disallow:")){
+                        thisURLdisallowedSLashes.add(line.substring("Disallow:".length(), line.length()));
+                    }
+                }
+                if (line.contains("User-agent: *")) { //first line
+                    allCrawlers = true; //direct the behaviour
+                } else if (line.contains("User-agent"))
+                    allCrawlers = false; //the next time it sees User-agent redirect the behaviour
             }
         } catch (IOException e) {
             e.printStackTrace();
+            return "";
         }
+
+        //compare each link with all the disallowed slashes
+        for (String link: httpLinks) {
+            try {
+                if (getParentURL(link).equals(getParentURL(this.url))) {
+                    for (String slash : thisURLdisallowedSLashes) {
+                        if (link.contains(slash)) {
+                            httpLinks.remove(link); //TODO da shaghal ? we msh hybwaz el loop ?
+                            break;
+                        }
+                    }
+                } else {
+                    List<String> URLdisallowedSLashes = new ArrayList<>();
+                    URLdisallowedSLashes = getDisallowedSlashes(link);
+                    for (String slash : URLdisallowedSLashes) {
+                        if (link.contains(slash)) {
+                            httpLinks.remove(link); //TODO da shaghal ? we msh hybwaz el loop ?
+                            break;
+                        }
+                    }
+                }
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return ROBOTS.toString();
+    }
+
+    private List<String> getDisallowedSlashes(String URL)
+    {
+        String parentURL = null;
+        StringBuilder ROBOTS = new StringBuilder();
+        try {
+            parentURL = getParentURL(URL);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        boolean allCrawlers = false;
+        List<String> thisURLdisallowedSLashes = new ArrayList<>();
+
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(parentURL + "robots.txt").openStream()))) {
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                //extract the disallowed slashes of the ROBOTS file
+                if (allCrawlers) {
+                    if (line.contains("Disallow:")) {
+                        thisURLdisallowedSLashes.add(line.substring("Disallow:".length(), line.length()));
+                    }
+                }
+                if (line.contains("User-agent: *")) { //first line
+                    allCrawlers = true; //direct the behaviour
+                } else if (line.contains("User-agent"))
+                    allCrawlers = false; //the next time it sees User-agent redirect the behaviour
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }
+        return thisURLdisallowedSLashes;
+    }
+
+    private void fillBundleData()
+    {
+        //ID
+        //data.id  ??
+
+        //URL
+        data.setUrl(this.url);
+
+        //ROBOTS & DESCRIPTION  https://stackoverflow.com/questions/37591685/parsing-the-html-meta-tag-with-jsoup-library
+        data.setRobots(this.checkRobot());
+        Elements metaTags = htmlDocument.getElementsByTag("meta");
+        for (Element metaTag : metaTags){
+            String content = metaTag.attr("content");
+            String name = metaTag.attr("name");
+            if ("robots".equals(name))
+                data.setDescription(content);
+        }
+
+        //CHILDREN -- must be after ROBOTS as robots edits the httpLinks list
+        data.setChild(httpLinks);
+
+        //PARENTS
+        data.setParent("");
+
+        //TITLE
+        data.setTitle(htmlDocument.title());
+
+        //HEADER
+        data.setHeader(htmlDocument.head().toString()); //TODO check a da
+
+        //BODY
+        data.setBody(htmlDocument.body().toString()); //TODO tala3 el text bas mn da ?
+
+        //HASH
 
     }
 
     private String getParentURL(String url) throws URISyntaxException
     {
         int currLenght , prvLenght = 0;
-        URI uri = new URI("https://stackoverflow.com");
+        URI uri = new URI(url);
         URI parent = uri.getPath().endsWith("/") ? uri.resolve("..") : uri.resolve(".");
         while (true){
             prvLenght = parent.toString().length();
@@ -191,7 +316,9 @@ public class Spider{
         return "S";
     }
 
-    Bundle getData() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public Bundle getData()
+    {
+        return this.data;
+
     }
 }
