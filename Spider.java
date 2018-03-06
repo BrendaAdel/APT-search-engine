@@ -315,5 +315,6 @@ public class Spider{
     public Bundle getData()
     {
         return this.data;
+
     }
 }

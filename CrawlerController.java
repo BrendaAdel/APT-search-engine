@@ -13,25 +13,38 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author Brenda
  */
 public class CrawlerController implements Runnable{
-    private List<String> myList;
-    private Crawler[] threadArray ;
-    private PageVisitedByCrawler pageVisited ;
-    private int numOfThreads;
-    private  final int MAX_PAGES = 5000;
-    private boolean crawled=false;
-    private boolean firstTime;// to indicate if he is returning from an interrupt or it's the first time
+
+private List<String> myList;
+private Crawler[] threadArray ;
+private PageVisitedByCrawler pageVisited ;
+private Model_DB db;
+private int numOfThreads;
+private  final int MAX_PAGES = 5000;
+private boolean crawled=false;
+private int firstTime;
+//private boolean firstTime;// to indicate if he is returning from an interrupt or it's the first time 
+
     @Override
     public void run() {
         System.out.println("hello from controllerCrawler Thread");
         intialization();
         //if not craweled , create thread and go on the normal flow 
-        if(!crawled)
-          createThreads();
+        if(firstTime<=0)
+        try 
+        {
+            createThreads();
+        }
+        catch (InterruptedException ex) 
+        {
+            System.out.println("can't create threads");
+        }
         else
         {
            //if it's craweled before call recrawel()
@@ -44,8 +57,9 @@ public class CrawlerController implements Runnable{
     private void intialization ()
     {
         String line ="";
+        db=new Model_DB();
         myList = new ArrayList<>();
-        pageVisited= new PageVisitedByCrawler();
+        pageVisited= new PageVisitedByCrawler(db);
         try
         {
                 FileReader fileReader = new FileReader("input.txt");
@@ -56,6 +70,7 @@ public class CrawlerController implements Runnable{
                 line = bufferedReader.readLine();    
                 if(line==null)
                 {
+                    firstTime=-1;
                     System.out.println("enter number of threads");
                     Scanner in = new Scanner(System.in);
                     numOfThreads = in.nextInt();
@@ -89,17 +104,18 @@ public class CrawlerController implements Runnable{
                     line = bufferedReader.readLine();
                     numOfThreads=Integer.parseInt(line);
                     line= bufferedReader.readLine();
-                    if(line=="crawled")
-                        crawled=true;
-                    else
-                        crawled=false;
-                    
-                    while((line = bufferedReader.readLine()) != null)
+                   
+                    if(line!=null)
                     {
-                        // he is reading the non visited url 
-                        myList.add(line);
-
-                    }  
+                        
+                        firstTime=1;
+                    }
+                        
+                    else
+                    {
+                         firstTime=0;
+                       
+                    }
 
                     bufferedReader.close();
                     
@@ -121,24 +137,68 @@ public class CrawlerController implements Runnable{
        
         
     }
-    private void createThreads()
+    private void createThreads() throws InterruptedException
     {
         threadArray = new Crawler[numOfThreads]; //dynamic array of crawler
-        int stopCreatria=5000/numOfThreads;
-        int stopCreatria2=(5000/numOfThreads)+(5000%numOfThreads);
+        Thread[] temp= new Thread [numOfThreads] ;
+        int target=db.getStoppingCreatria();
+        int stopCreatria=(5000-target)/numOfThreads;
+        int stopCreatria2=((5000-target)/numOfThreads)+((5000-target)%numOfThreads);
         for(int i=0 ; i<numOfThreads;i++)
         {
-            if(i==0)
+            if(firstTime==-1)
             {
-                 threadArray[i] = new Crawler(myList.get(i),pageVisited,stopCreatria2);
+                if(i==0)
+                {
+                     threadArray[i] = new Crawler(myList.get(i),pageVisited,stopCreatria2,db,firstTime);
+                }
+                else
+                {
+                     threadArray[i] = new Crawler(myList.get(i),pageVisited,stopCreatria,db,firstTime);
+                }
             }
-            else
+            else if (firstTime==0)
             {
-                 threadArray[i] = new Crawler(myList.get(i),pageVisited,stopCreatria);
+                //crawler got interrupted
+                if(i==0)
+                {
+                     threadArray[i] = new Crawler(pageVisited,stopCreatria2,db,firstTime);
+                }
+                else
+                {
+                     threadArray[i] = new Crawler(pageVisited,stopCreatria,db,firstTime);
+                }
             }
+            
           
-          new Thread(threadArray[i]).start(); 
-        }        
+
+          temp[i]= new Thread(threadArray[i]);
+            //temp = new Thread(threadArray[i]).start();
+          temp[i].start();
+          
+          
+        }
+     
+        for(int i=0 ; i<numOfThreads;i++)
+        {
+            temp[i].join();
+        }
+        try {
+            FileWriter fileWriter =new FileWriter("input.txt");
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.newLine();
+            bufferedWriter.newLine();
+            bufferedWriter.write("crawled");
+           
+           
+        }
+        catch(IOException ex) {
+            System.out.println( "Error writing to file '");
+
+        }
+
+        
+        
     }
     private void reCrawel()
     {

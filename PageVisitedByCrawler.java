@@ -16,9 +16,14 @@ public class PageVisitedByCrawler {
     private Set<String> pagesVisited = new HashSet<String>();
 	private int dummy ;//this is to test github conflicts only 
     
-    PageVisitedByCrawler()
-    {
+    
+
+    PageVisitedByCrawler(Model_DB db) {
         //TO GET FILLED FROM DATABASE 3SHAN IF INTERRUPTED 
+        System.out.print("entered constructor");
+       db.getVisitedUrl(pagesVisited);
+        System.out.print("hello");
+        
     }
     
     public synchronized boolean isNotVisited (String nextUrl)
