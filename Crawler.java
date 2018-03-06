@@ -67,7 +67,7 @@ private String seed;
         
         while(stopCreatriaNumber>0)
         {
-             String url;
+             String [] url= new String[2];
             //it's supposed to be while we didn't reach the stopping creatria
             if(first==false)
             {
@@ -75,7 +75,8 @@ private String seed;
             }
             else
             {
-                url=seed;
+                url[0]=seed;
+                url[1]="no parent";
                 first=false;
             }
              
@@ -88,14 +89,14 @@ private String seed;
         
     }
     
-    private String nextUrl()
+    private String[] nextUrl()
     {
-        String nextUrl=db.getUnvisitedUrl();
+        String [] nextUrl=db.getUnvisitedUrl();
         
         while(nextUrl!=null )
         {
              //nextUrl = urlNotVisited.remove(0);
-             if(pageVisited.isNotVisited(nextUrl))
+             if(pageVisited.isNotVisited(nextUrl[0]))
              {
                  //if it's not already visited     
                 return nextUrl;
@@ -105,22 +106,27 @@ private String seed;
         return null;
     }    
 
-    private void createSpider(String url)
+    private void createSpider(String [] url)
     {
-        Spider spider= new Spider(url);
+        Spider spider= new Spider(url[0]);
         /*List<String> temp=new ArrayList<>();
         if (spider.success)
             temp = spider.getLinks();
         */
         Bundle data =spider.getData();
-        db.saveUnvisitedUrl(data.getChild());
-       /* for(int i=0; i<data.getChildCount();i++)
+        List<String[]> childTemp = new ArrayList<>();
+          for(int i=0; i<data.getChildCount();i++)
         {
-            urlNotVisited.add(data.getChild(i));
-            
-            
-        }*/
-        pageVisited.makeVisited(url);
+            String temp []= new String[2];
+            temp[0]=data.getChild(i);
+            temp[1]=url[0];
+              
+        }
+        
+        db.saveUnvisitedUrl(childTemp);
+      
+        pageVisited.makeVisited(url[0]);
+        data.setParent(url[1]);
         db.saveBundle(data);
         db.incrementCounterOfStoppingCreatria();
         notifyIndexer();

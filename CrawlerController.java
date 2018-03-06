@@ -86,7 +86,9 @@ private int firstTime;
                         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
                         bufferedWriter.write("firsttime");
                         bufferedWriter.newLine();
-                        bufferedWriter.write(numOfThreads);
+                        String dummy="";
+                        dummy=dummy+numOfThreads;
+                        bufferedWriter.write(dummy);
                         bufferedWriter.close();
                     }
                     catch(IOException ex) {
@@ -97,6 +99,7 @@ private int firstTime;
 
                 }
                 else
+                 
                 {
                     //the crawler/recrawler got interrupted
                     line = bufferedReader.readLine();

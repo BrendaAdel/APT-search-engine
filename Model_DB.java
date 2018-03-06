@@ -21,13 +21,13 @@ public class Model_DB {
     }
    
 
-    public synchronized void saveUnvisitedUrl(List<String> child)
+    public synchronized void saveUnvisitedUrl(List<String[]> child)
     {
         
     }
-    public synchronized String getUnvisitedUrl()
+    public synchronized String [] getUnvisitedUrl()
     {
-        String url="";
+        String [] url = new String [2];
         //to do take anyone but delete it .
         return url;
     }
@@ -46,5 +46,6 @@ public class Model_DB {
     public void getVisitedUrl(Set<String> pagesVisited) {
         
     }
+
     
 }

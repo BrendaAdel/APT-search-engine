@@ -50,9 +50,9 @@ public class Bundle {
     {
         this.indexed=indexed;
     }
-    public  List<String> getChild()
+    public  String getChild(int i)
     {
-        return childs;
+        return childs.get(i);
     }
     public int getChildCount()
     {
