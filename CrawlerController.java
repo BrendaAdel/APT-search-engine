@@ -18,13 +18,13 @@ import java.util.Scanner;
  * @author Brenda
  */
 public class CrawlerController implements Runnable{
-private List<String> myList;
-private Crawler[] threadArray ;
-private PageVisitedByCrawler pageVisited ;
-private int numOfThreads;
-private  final int MAX_PAGES = 5000;
-private boolean crawled=false;
-private boolean firstTime;// to indicate if he is returning from an interrupt or it's the first time 
+    private List<String> myList;
+    private Crawler[] threadArray ;
+    private PageVisitedByCrawler pageVisited ;
+    private int numOfThreads;
+    private  final int MAX_PAGES = 5000;
+    private boolean crawled=false;
+    private boolean firstTime;// to indicate if he is returning from an interrupt or it's the first time
     @Override
     public void run() {
         System.out.println("hello from controllerCrawler Thread");

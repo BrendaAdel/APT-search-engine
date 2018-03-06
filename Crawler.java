@@ -13,11 +13,11 @@ import java.util.Set;
  */
 public class Crawler implements Runnable {
     
-private List<String> urlNotVisited;
-//private Set<String> pagesVisited = new HashSet<String>();
-private int stopCreatriaNumber;
-private PageVisitedByCrawler pageVisited;
-private boolean recrawled=false;
+    private List<String> urlNotVisited;
+    //private Set<String> pagesVisited = new HashSet<String>();
+    private int stopCreatriaNumber;
+    private PageVisitedByCrawler pageVisited;
+    private boolean recrawled=false;
 
 
     Crawler(String name,PageVisitedByCrawler pageVisited,int stopCreatria)
@@ -80,16 +80,20 @@ private boolean recrawled=false;
         if (spider.success)
             temp = spider.getLinks();
         */
-        Bundle data =spider.getData();
-        for(int i=0; i<data.getChildCount();i++)
-        {
-            urlNotVisited.add(data.getChild(i));
+        if (spider.success) {
+            Bundle data = spider.getData();
+            for (int i = 0; i < data.getChildCount(); i++) {
+                urlNotVisited.add(data.getChild(i));
+            }
+            pageVisited.makeVisited(url);
+
+            //HENA MFROUD NSAVE F DATA BASE KMAAN
+            // AND NOTIFY INDEXER THAT ONE ROW IS READY
         }
-        pageVisited.makeVisited(url);
-        
-        //HENA MFROUD NSAVE F DATA BASE KMAAN 
-        // AND NOTIFY INDEXER THAT ONE ROW IS READY 
-        
+        else {
+            //TODO
+            //lw el spider failed le ai sbab network aw ai 7aaga . n3ml a
+        }
     }
           
     
