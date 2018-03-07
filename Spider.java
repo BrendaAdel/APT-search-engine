@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -14,6 +15,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,6 +49,8 @@ public class Spider{
     private List<String> httpLinks = new ArrayList<>();
 
 
+    StringBuilder ROBOTS;
+
     /**
      * the bundle that will be filled and returned
      */
@@ -66,6 +71,7 @@ public class Spider{
         success = false;
         linksCount = 0;
         data = new Bundle();
+        ROBOTS = new StringBuilder();
     }
 
 
@@ -77,13 +83,13 @@ public class Spider{
         crawl();
     }
 
-    private void crawl () {
+    private void crawl ()
+    {
         final Document document = downloadDocument();
-        if (document != null) {
+        if (document != null && checkRobots()) {
             findLinks();
             fillBundleData();
-            checkRobot(); //removes the disallowed links from the bundle using robots.txt
-            System.out.println("Received web page at " + url + " , found " + linksCount + " links.");
+            System.out.println("        * done crawling " + url + " , found " + linksCount + " links.");
             this.success = true;
         } else {
             this.success = false;
@@ -96,11 +102,12 @@ public class Spider{
             try {
                 Connection connection = Jsoup.connect(this.url).userAgent(this.USER_AGENT);
                 this.htmlDocument =connection.get();
+                System.out.println("        * Downloaded document.");
                 break;
             } catch (java.net.ConnectException | java.net.SocketTimeoutException ioe){
-                System.out.println("Connection timed out, retrying ..");
+                System.out.println("        * Connection timed out, retrying ..");
             } catch (IOException ioe) {
-                System.out.println("Error in HTTP request: " + ioe);
+                System.out.println("        * Error in HTTP request, returning no document to crawler");
                 this.htmlDocument = null;
                 this.success = false;
                 break;
@@ -133,10 +140,11 @@ public class Spider{
             }
 
             this.linksCount = this.httpLinks.size();
+            System.out.println("        * found " + linksCount + " links.");
         }
         else {
             this.linksCount = 0;
-            System.out.println("this spider wasn't successful crawling it's page");
+            System.out.println("        * this spider wasn't successful crawling it's page");
         }
     }
 
@@ -152,6 +160,8 @@ public class Spider{
     /*
     cleans the links of the disallowed links, and returns the robots.txt as string
     */
+
+    /*
     private String checkRobot()
     {
         String parentURL = null;
@@ -165,48 +175,79 @@ public class Spider{
         boolean allCrawlers = false;
         List<String> thisURLdisallowedSLashes = new ArrayList<>();
 
-        //get the Robots.txt file (TODO check if it even exists)
         // https://stackoverflow.com/questions/25731346/reading-robot-txt-with-jsoup-line-by-line
-        try(BufferedReader in = new BufferedReader(
-            new InputStreamReader(new URL(parentURL + "robots.txt").openStream()))) {
-            String line = null;
-            while((line = in.readLine()) != null) {
-                //System.out.println(line);
-                ROBOTS.append(line);
-
-                //extract the disallowed slashes of the ROBOTS file
-
-                if (allCrawlers){
-                    if (line.contains("Disallow:")){
-                        thisURLdisallowedSLashes.add(line.substring("Disallow:".length(), line.length()));
-                    }
-                }
-                if (line.contains("User-agent: *")) { //first line
-                    allCrawlers = true; //direct the behaviour
-                } else if (line.contains("User-agent"))
-                    allCrawlers = false; //the next time it sees User-agent redirect the behaviour
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "";
-        }
-
-        //compare each link with all the disallowed slashes
-        for (String link: httpLinks) {
+        while (true) {
             try {
+                System.out.println("        * Link :Trying to open " + parentURL + "robots.txt");
+                BufferedReader in = new BufferedReader(new InputStreamReader(new URL(parentURL + "robots.txt").openStream()));
+                String line = null;
+                while ((line = in.readLine()) != null) {
+                    //System.out.println(line);
+                    ROBOTS.append(line);
+
+                    //extract the disallowed slashes of the ROBOTS file
+
+                    if (allCrawlers) {
+                        if (line.contains("Disallow:")) {
+                            if (line.contains("/"))
+                                thisURLdisallowedSLashes.add(line.substring("Disallow:".length() + 1, line.length()));
+                        }
+                    }
+                    if (line.contains("User-agent: *")) { //first line
+                        allCrawlers = true; //direct the behaviour
+                    } else if (line.contains("User-agent"))
+                        allCrawlers = false; //the next time it sees User-agent redirect the behaviour
+                }
+                System.out.println("        * Downloaded robots.txt");
+                break;
+
+            } catch (MalformedURLException e) {
+                System.out.println("        * MalformedURL to " + parentURL + ", no changes to links list.");
+                //e.printStackTrace();
+                break;
+            } catch (java.net.ConnectException e){
+                System.out.println("        * Connection timed out, trying to reconnect ...");
+            } catch (java.io.FileNotFoundException e) {
+                System.out.println("        * robots.txt was not found for " + parentURL + ", no changes to links list.");
+                break;
+            } catch (IOException e) {
+                //e.printStackTrace();
+                System.out.println("        * Unhandled exception accessing " + parentURL + ", no changes to links list.");
+                break;
+            }
+        }
+        //compare each link with all the disallowed slashes
+        int count = 0;
+        for (Iterator<String> iter = httpLinks.listIterator(); iter.hasNext(); ) {
+            count ++;
+            String link = iter.next();
+            //if (link.contains("tmblr"))
+             //   System.out.println("sad0"); 3abhady was here
+
+            try {
+
+                if (getParentURL(link).contains("/localhost/")){
+                    iter.remove();
+                    count--;
+                    continue;
+                }
+
                 if (getParentURL(link).equals(getParentURL(this.url))) {
                     for (String slash : thisURLdisallowedSLashes) {
-                        if (link.contains(slash)) {
-                            httpLinks.remove(link); //TODO da shaghal ? we msh hybwaz el loop ?
+                        if (link.indexOf(slash) != -1) {
+                            iter.remove();
+                            count--;
                             break;
                         }
                     }
                 } else {
                     List<String> URLdisallowedSLashes = new ArrayList<>();
+                    System.out.println("        * Link " + count + " needs outsider robots.txt");
                     URLdisallowedSLashes = getDisallowedSlashes(link);
                     for (String slash : URLdisallowedSLashes) {
-                        if (link.contains(slash)) {
-                            httpLinks.remove(link); //TODO da shaghal ? we msh hybwaz el loop ?
+                        if (link.indexOf(slash) != -1) {
+                            count--;
+                            iter.remove();
                             break;
                         }
                     }
@@ -219,6 +260,7 @@ public class Spider{
         return ROBOTS.toString();
     }
 
+    //copying the function above for now TODO fix this redundancy
     private List<String> getDisallowedSlashes(String URL)
     {
         String parentURL = null;
@@ -229,31 +271,120 @@ public class Spider{
             e.printStackTrace();
         }
 
+        if (robotsOfLinksMap.containsKey(parentURL))
+            return robotsOfLinksMap.get(parentURL);
+
         boolean allCrawlers = false;
         List<String> thisURLdisallowedSLashes = new ArrayList<>();
 
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(new URL(parentURL + "robots.txt").openStream()))) {
-            String line = null;
-            while ((line = in.readLine()) != null) {
-                //extract the disallowed slashes of the ROBOTS file
-                if (allCrawlers) {
-                    if (line.contains("Disallow:")) {
-                        thisURLdisallowedSLashes.add(line.substring("Disallow:".length(), line.length()));
+        while (true) {
+            try {
+                System.out.println("        * Trying to open " + parentURL + "robots.txt");
+                BufferedReader in = new BufferedReader(new InputStreamReader(new URL(parentURL + "robots.txt").openStream()));
+                String line = null;
+                while ((line = in.readLine()) != null) {
+                    //extract the disallowed slashes of the ROBOTS file
+                    if (allCrawlers) {
+                        if (line.contains("Disallow:")) {
+                            if (line.contains("/"))
+                                thisURLdisallowedSLashes.add(line.substring("Disallow:".length() + 1, line.length()));
+                        }
                     }
+                    if (line.contains("User-agent: *")) { //first line
+                        allCrawlers = true; //direct the behaviour
+                    } else if (line.contains("User-agent"))
+                        allCrawlers = false; //the next time it sees User-agent redirect the behaviour
                 }
-                if (line.contains("User-agent: *")) { //first line
-                    allCrawlers = true; //direct the behaviour
-                } else if (line.contains("User-agent"))
-                    allCrawlers = false; //the next time it sees User-agent redirect the behaviour
+                System.out.println("        * Downloaded robots.txt");
+                break;
+
+            } catch (MalformedURLException e) {
+                System.out.println("        * MalformedURL to " + parentURL + ", no changes to links list.");
+                //e.printStackTrace();
+                break;
+            } catch (java.net.ConnectException e){
+                System.out.println("        * Connection timed out, trying to reconnect ...");
+            } catch (java.io.FileNotFoundException e) {
+                System.out.println("        * robots.txt was not found for " + parentURL + ", no changes to links list.");
+                break;
+            } catch (IOException e) {
+                //e.printStackTrace();
+                System.out.println("        * Unhandled exception accessing " + parentURL + ", no changes to links list.");
+                break;
             }
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-
         }
+        robotsOfLinksMap.put(parentURL, thisURLdisallowedSLashes);
         return thisURLdisallowedSLashes;
+    }
+    */
+
+    private boolean checkRobots()
+    {
+        String parentURL = null;
+        try {
+            parentURL = getParentURL(this.url);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        boolean allCrawlers = false;
+        List<String> thisURLdisallowedSLashes = new ArrayList<>();
+
+        // https://stackoverflow.com/questions/25731346/reading-robot-txt-with-jsoup-line-by-line
+        while (true) {
+            try {
+                System.out.println("        * Link :Trying to open " + parentURL + "robots.txt");
+                BufferedReader in = new BufferedReader(new InputStreamReader(new URL(parentURL + "robots.txt").openStream()));
+                String line = null;
+                while ((line = in.readLine()) != null) {
+                    //System.out.println(line);
+                    ROBOTS.append(line);
+
+                    //extract the disallowed slashes of the ROBOTS file
+
+                    if (allCrawlers) {
+                        if (line.contains("Disallow:")) {
+                            if (line.contains("/"))
+                                thisURLdisallowedSLashes.add(line.substring("Disallow:".length() + 1, line.length()));
+                        }
+                    }
+                    if (line.contains("User-agent: *")) { //first line
+                        allCrawlers = true; //direct the behaviour
+                    } else if (line.contains("User-agent"))
+                        allCrawlers = false; //the next time it sees User-agent redirect the behaviour
+                }
+                System.out.println("        * Downloaded robots.txt");
+                break;
+
+            } catch (MalformedURLException e) {
+                System.out.println("        * MalformedURL to " + parentURL + ", no changes to links list.");
+                //e.printStackTrace();
+                break;
+            } catch (java.net.ConnectException e){
+                System.out.println("        * Connection timed out, trying to reconnect ...");
+            } catch (java.io.FileNotFoundException e) {
+                System.out.println("        * robots.txt was not found for " + parentURL + ", no changes to links list.");
+                break;
+            } catch (IOException e) {
+                //e.printStackTrace();
+                System.out.println("        * Unhandled exception accessing " + parentURL + ", no changes to links list.");
+                break;
+            }
+        }
+
+        if (this.url.contains("/localhost/")){
+            return false;
+        }
+
+        for (String slash : thisURLdisallowedSLashes) {
+            if (url.contains(slash)){
+                System.out.println("        * Disallowed by robots.txt, spider was unsuccessful.");
+                return false;
+            }
+        }
+
+
+        return true;
     }
 
     private void fillBundleData()
@@ -265,7 +396,7 @@ public class Spider{
         data.setUrl(this.url);
 
         //ROBOTS & DESCRIPTION  https://stackoverflow.com/questions/37591685/parsing-the-html-meta-tag-with-jsoup-library
-        data.setRobots(this.checkRobot());
+        data.setRobots(this.ROBOTS.toString());
         Elements metaTags = htmlDocument.getElementsByTag("meta");
         for (Element metaTag : metaTags){
             String content = metaTag.attr("content");
@@ -278,18 +409,31 @@ public class Spider{
         data.setChild(httpLinks);
 
         //PARENTS
-        data.setParent("");
+        //data.setParent("");
 
         //TITLE
         data.setTitle(htmlDocument.title());
 
         //HEADER
-        data.setHeader(htmlDocument.head().toString()); //TODO check a da
+        data.setHeader(htmlDocument.head().text());
 
         //BODY
-        data.setBody(htmlDocument.body().toString()); //TODO tala3 el text bas mn da ?
+        data.setBody(htmlDocument.body().text());
 
         //HASH
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(htmlDocument.body().text().getBytes());
+            byte[] digest = md.digest();
+            String myHash = DatatypeConverter.printHexBinary(digest).toUpperCase();
+            System.out.println("        * Hash: " + myHash);
+            //TODO fill the bundle with hash
+
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("        * Error hashing html body. hash set to empty string");
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -310,15 +454,12 @@ public class Spider{
         }
     }
 
-    //TODO
-    public String hashPage(){
-        System.out.print(this.htmlDocument.toString());
-        return "S";
-    }
-
     public Bundle getData()
     {
         return this.data;
 
     }
 }
+
+
+//TODO timeout needs fixing, it leads to infinite waiting and retrying

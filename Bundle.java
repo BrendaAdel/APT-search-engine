@@ -5,6 +5,7 @@
  */
 package apt_project;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,15 +34,14 @@ public class Bundle {
         header="";
         body="";
         indexed=false;
+        childs = new ArrayList<>();
     }
+
     public void setChild(List<String> ch)
     {
-        for(int i=0 ; i<ch.size();i++)
-        {
-            childs.add(ch.get(i));
-        }
-        
+        childs.addAll(ch);
     }
+
     public boolean getIndexed()
     {
         return indexed;

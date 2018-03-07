@@ -33,8 +33,8 @@ public class test {
         //https://www.gamasutra.com/
 
         //URI uri = new URI("https://stackoverflow.com/questions/10159186/how-to-get-parent-url-in-java");
-        Spider sp = new Spider("http://annaxiin.tumblr.com/");
-        if (sp.success) sp.printLinks();
+        Spider sp = new Spider("https://css-tricks.com/snippets/javascript/get-url-and-url-parts-in-javascript/");
+        //if (sp.success) sp.printLinks();
     }
     
 }
